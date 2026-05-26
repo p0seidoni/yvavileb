@@ -51,4 +51,212 @@
         /* ყვავილების კონტეინერი */
         .flowers-container {
             display: flex;
-            gap: 15px
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+
+        .flower {
+            font-size: 3.5rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .flower:active {
+            transform: scale(0.8);
+        }
+
+        /* ტექსტის ეკრანის სტილი */
+        .message-content {
+            background: rgba(255, 255, 255, 0.6);
+            padding: 30px 20px;
+            border-radius: 20px;
+            width: 85%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.2);
+            z-index: 20;
+            line-height: 1.6;
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+
+        /* უკან დასაბრუნებელი ღილაკი */
+        #back-button {
+            margin-top: 25px;
+            background: none;
+            border: 1px solid #ff69b4;
+            color: #ff69b4;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.3s, color 0.3s;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #back-button:active {
+            background: #ff69b4;
+            color: white;
+        }
+
+        /* გულების აფეთქების ეფექტი */
+        .explosion-heart {
+            position: absolute;
+            font-size: 1.5rem;
+            pointer-events: none;
+            animation: explode 0.8s ease-out forwards;
+        }
+
+        @keyframes explode {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* წვიმის ეფექტი */
+        #heart-rain-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 5;
+        }
+
+        .falling-heart {
+            position: absolute;
+            top: -10%;
+            font-size: 1.2rem;
+            animation: fall linear forwards;
+            opacity: 0.7;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(110vh) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="main-screen" class="screen active">
+        <h1>დილა მშვიდობისა ჩემო პატარა პრინცესა</h1>
+        <div class="flowers-container">
+            <div class="flower" data-id="0">🌷</div>
+            <div class="flower" data-id="1">🌷</div>
+            <div class="flower" data-id="2">🌷</div>
+            <div class="flower" data-id="3">🌷</div>
+            <div class="flower" data-id="4">🌷</div>
+        </div>
+    </div>
+
+    <div id="message-screen" class="screen">
+        <div id="heart-rain-container"></div>
+        <div class="message-content">
+            <div id="message-text"></div>
+            <button id="back-button">უკან გასვლა</button>
+        </div>
+    </div>
+
+    <script>
+        // შენი სასიყვარულო ტექსტები
+        const messages = [
+            "ჩემო პატარა პრინცესა, მინდა იცოდე, რომ უზომოდ მიყვარხარ და მუდამ შენს გვერდით ვიქნები. ყველაფერ ცუდს ერთად გადავლახავთ და ერთად შევქმნით ჩვენს ბედნიერ ცხოვრებას.",
+            "ჩემი ცხოვრების არსი ხარ, ჩემი პატარა ანგელოზი. ვერასდროს ვიფიქრებდი, რომ ოდესმე ვინმე გახდებოდა ჩემთვის ასეთი მნიშვნელოვანი და ძვირფასი. უზომოდ ბედნიერი ვარ, რომ მყავხარ. ყველაფერს ვიზამ შენი ბედნიერებისთვის. მინდა ყველაზე ბედნიერი ქალი იყო ჩემს გვერდით.",
+            "ჩემო პატარა ანგელოზო, ჩემო სასწაულო, ჩემო მზის სხივო და სითბოვ. უზომოდ მადლიერი ვარ შენით. ჩემი ცხოვრება 180 გრადუსით შეცვალე და აზრი შესძინე. მთელი ჩემი სამყაროს არსი ხარ, უზომოდ მიყვარხარ.",
+            "ჩემო მომავალო მეუღლევ, ჩემო დედოფალო, სული ერთი მაქვს როდის მოვა ის დრო, როცა ჩვენი ოჯახი გვექნება. როდის მოვა ის წამი, როცა ჩვენი ბუდე აშენებული იქნება. ყოველ საღამოს ჩვენს სახლში მოვალ და ჩაგეხუტები, გულში ჩაგიკრავ და დაგიკოცნი მთელ სახეს. ვეღარც კი ვითმენ როდის ირბენენ ჩვენი პატარა სიყვარულის ნაყოფები ჩვენს ბუდეში. ყველაფერს გავიღებ იმისთვის, რომ უბედნიერესი ოჯახი გვქონდეს.",
+            "ჩემი სიყვარული ხარ, ჩემი არსი, ჩემი მეს დედოფალი. მთელი ჩემი სამყარო შენს გარშემო ტრიალებს, ჩემი ყოველი ფიქრი შენ გეკუთვნის, ჩემი ყოველი ამოსუნთქვა შენია, შენთვის ვცოცხლობ ჩემო პატარა. შენდამი გრძნობებია ის, რაც მე მე მხდის. უზომოდ მიყვარხარ ჩემო ცხოვრებავ. უსასრულობაც არ მეყოფა იმის აღსაწერად, თუ რა ძლიერ მიყვარხარ, როგორ ძლიერ გნატრობ და როგორ ბედნიერი ვარ იმ ფაქტით, რომ მყავხარ. მადლობა ჩემო პატარა, ყველაფრისთვის მადლობა."
+        ];
+
+        const mainScreen = document.getElementById('main-screen');
+        const messageScreen = document.getElementById('message-screen');
+        const messageText = document.getElementById('message-text');
+        const backButton = document.getElementById('back-button');
+        const rainContainer = document.getElementById('heart-rain-container');
+        let rainInterval;
+
+        // გულების აფეთქების ფუნქცია
+        function createExplosion(x, y) {
+            const hearts = ['❤️', '💖', '💗', '💓', '💕'];
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('div');
+                heart.innerText = hearts[Math.floor(Math.random() * hearts.length)];
+                heart.className = 'explosion-heart';
+                heart.style.left = x + 'px';
+                heart.style.top = y + 'px';
+                
+                // მიმართულების კალკულაცია
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 80 + 40;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                heart.style.setProperty('--tx', `${tx}px`);
+                heart.style.setProperty('--ty', `${ty}px`);
+                
+                document.body.appendChild(heart);
+                
+                setTimeout(() => {
+                    heart.remove();
+                }, 800);
+            }
+        }
+
+        // გულების წვიმის ფუნქცია
+        function createFallingHeart() {
+            const heart = document.createElement('div');
+            heart.innerText = ['🌸', '💖', '💕'][Math.floor(Math.random() * 3)];
+            heart.className = 'falling-heart';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.fontSize = (Math.random() * 1 + 0.5) + 'rem';
+            heart.style.animationDuration = (Math.random() * 3 + 3) + 's';
+            
+            rainContainer.appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 6000);
+        }
+
+        // ყვავილებზე დაჭერის ლოგიკა
+        document.querySelectorAll('.flower').forEach(flower => {
+            flower.addEventListener('click', function(e) {
+                // აფეთქება თითის დაჭერის ადგილას
+                const rect = e.target.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+                createExplosion(x, y);
+
+                const id = this.getAttribute('data-id');
+                messageText.innerText = messages[id];
+
+                // ეკრანის გადართვა მცირე დაყოვნებით
+                setTimeout(() => {
+                    mainScreen.classList.remove('active');
+                    messageScreen.classList.add('active');
+                    
+                    // წვიმის დაწყება
+                    rainInterval = setInterval(createFallingHeart, 300);
+                }, 500);
+            });
+        });
+
+        // უკან დაბრუნების ლოგიკა
+        backButton.addEventListener('click', () => {
+            messageScreen.classList.remove('active');
+            mainScreen.classList.add('active');
+            
+            // წვიმის შეჩერება
+            clearInterval(rainInterval);
+            rainContainer.innerHTML = '';
+        });
+    </script>
+</body>
+</html>
